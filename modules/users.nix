@@ -1,5 +1,7 @@
 { pkgs, inputs, ... }:
 
+
+#User
 {
   users.users.mny315 = {
     isNormalUser = true;
@@ -7,22 +9,37 @@
     packages = with pkgs; [
       inputs.noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default
       
-      google-chrome ayugram-desktop imv prismlauncher
-      mangohud fastfetch lm_sensors
+      google-chrome
+      ayugram-desktop
+      prismlauncher
+      mangohud
+      fastfetch
+      lm_sensors
+      ivm
     ];
   };
 
+#SystemPkgs
   environment.systemPackages = with pkgs; [
-    git neovide neovim 
-    ffmpeg udiskie
- #   (mpv.override { scripts = [ mpvScripts.mpris ]; })
-    file-roller
-    
-    wl-clipboard xwayland-satellite
-    grim swww slurp satty fuzzel wezterm
-    
+    (mpv.override { scripts = [ mpvScripts.mpris ]; })
+     
+    xwayland-satellite
     papirus-icon-theme
+    wl-clip-persist
+    wl-clipboard
+    file-roller
+    neovide 
+    neovim
+    ffmpeg
+    udiskie
+    fuzzel
+    wezterm
+    git
   ];
+
+#Programs  
+  programs.niri.enable = true;
+  programs.xwayland.enable = true;
 
   programs.thunar = {
     enable = true;
@@ -31,7 +48,4 @@
       pkgs.thunar-volman
     ];
   };
-  
-  programs.niri.enable = true;
-  programs.xwayland.enable = true;
 }

@@ -11,30 +11,25 @@
     ../../modules/SDDM.nix
   ];
 
-  # --- Общие системные настройки  ----
-
-  # Версия системы
+#System version
   system.stateVersion = "25.05";
 
-  # Проприетарщина
+#Proptietary
   nixpkgs.config.allowUnfree = true;
 
-  # Настройки Nix и Flakes
+#Flakes (God save us)
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
-  # Время и Локализация
+#Time
   time.timeZone = "UTC";
   i18n.defaultLocale = "en_US.UTF-8";
 
-  # Алиасы
+#Alias
   environment.shellAliases = {
-    f = "sudo nano /etc/nixos/hosts/laptop/configuration.nix";
     nrs = "cd /etc/nixos && git add . && sudo nixos-rebuild switch --flake .#laptop";
     erase = "sudo nix-env --delete-generations old -p /nix/var/nix/profiles/system && sudo nix-collect-garbage -d";
-    fniri = "sudo nano /etc/nixos/home-manager/dotfiles/config.kdl";
-    fusers = "sudo nano /etc/nixos/modules/users.nix"; 
  };
 
-  # Редактор на случай отвала
+#Nano for emergency
   environment.systemPackages = [ pkgs.nano ];
 }

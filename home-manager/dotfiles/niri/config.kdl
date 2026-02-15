@@ -55,8 +55,8 @@ animations {
     }
 }
 
-spawn-at-startup "sh" "-c" "swww-daemon && swww img /home/mny315/.config/Image/Wallpaper/wallhaven_kwvow1.jpg --transition-type immediate"
 spawn-at-startup "noctalia-shell"
+spawn-at-startup "wl-clip-persist" "--clipboard" "both"
 
 binds {
     Super+T { spawn "wezterm"; }

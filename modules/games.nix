@@ -1,6 +1,8 @@
 { config, pkgs, ... }:
 
 {
+
+#File System
   fileSystems."/run/media/mny315/games" = {
     device = "/dev/disk/by-uuid/83ef118c-b566-4953-8052-9c7030aab822";
     fsType = "ext4";
@@ -11,6 +13,7 @@
     "ntfs" "exfat" "vfat" "ext4" "btrfs" "xfs" "f2fs"
   ];
 
+#Flatpak
   services.flatpak = {
     enable = true;
     remotes = [{
@@ -24,6 +27,7 @@
     };
   };
 
+#Steam
   programs.steam = {
     enable = true;
     gamescopeSession.enable = true;
@@ -35,6 +39,7 @@
     };
   };
 
+#ld
   programs.nix-ld = {
     enable = true;
     libraries = with pkgs; [

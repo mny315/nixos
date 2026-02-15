@@ -1,5 +1,6 @@
 { config, pkgs, ... }:
 
+#igpu
 {
   hardware.graphics = {
     enable = true;
@@ -11,6 +12,7 @@
     ];
   };
 
+#Nvidia
   services.xserver.videoDrivers = [ "nvidia" ];
 
   hardware.nvidia = {
@@ -28,6 +30,7 @@
     };
   };
 
+#Nvidia Lock Clock
   systemd.services.nvidia-gpu-clocks = {
     description = "Lock NVIDIA GPU clocks";
     after = [ "multi-user.target" ];
@@ -39,7 +42,8 @@
       RemainAfterExit = true;
     };
   };
-  
+
+#Environments
  environment.variables = {
     MOZ_DISABLE_RDD_SANDBOX = "1";
     LIBVA_DRIVER_NAME = "iHD";
@@ -47,6 +51,5 @@
     QT_QPA_PLATFORM = "wayland";
     NIXOS_OZONE_WL = "1";
     XDG_SESSION_TYPE = "wayland";
-   #MANGOHUD = "1";
   };
 }
