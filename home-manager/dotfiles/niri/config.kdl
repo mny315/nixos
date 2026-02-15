@@ -1,0 +1,114 @@
+output "eDP-1" {
+    mode "2560x1440"
+    scale 1.25
+}
+
+debug {
+    render-drm-device "/dev/dri/renderD128"
+    ignore-drm-device "/dev/dri/renderD129"
+}
+
+hotkey-overlay {
+    skip-at-startup
+}
+
+prefer-no-csd
+
+input {
+    keyboard {
+        xkb {
+            layout "us,ru"
+            options "grp:alt_shift_toggle"
+        }
+    }
+    touchpad {
+        tap
+        natural-scroll
+    }
+}
+
+layout {
+    gaps 8
+    center-focused-column "never"
+    preset-column-widths {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+    }
+}
+
+animations {
+    slowdown 1.0
+    window-open {
+        duration-ms 200
+        curve "ease-out-expo"
+    }
+    window-close {
+        duration-ms 200
+        curve "ease-out-quad"
+    }
+    window-movement {
+        spring damping-ratio=0.6 stiffness=800 epsilon=0.0001
+    }
+    horizontal-view-movement {
+        spring damping-ratio=0.7 stiffness=200 epsilon=0.0001
+    }
+}
+
+spawn-at-startup "sh" "-c" "swww-daemon && swww img /home/mny315/.config/Image/Wallpaper/wallhaven_kwvow1.jpg --transition-type immediate"
+spawn-at-startup "noctalia-shell"
+
+binds {
+    Super+T { spawn "wezterm"; }
+    Mod+L { spawn "noctalia-shell" "ipc" "call" "lockScreen" "lock"; }
+    Super+Tab { spawn "fuzzel"; }
+    Mod+D { spawn "thunar"; }
+    Mod+W { spawn "google-chrome-stable"; }
+    Mod+A { spawn "steam"; }
+    Mod+S { spawn "AyuGram"; }
+    Mod+R { toggle-window-floating; }
+    Mod+C { center-window; }
+    Mod+Z { spawn "sh" "-c" "grim -g \"$(slurp)\" - | satty --filename -"; }
+    Super+Space { toggle-overview; }
+    Super+Q { close-window; }
+    Super+Left  { focus-column-left; }
+    Super+Right { focus-column-right; }
+    Mod+Shift+E { quit; }  
+    Super+Down  { focus-window-down; }
+    Super+Up    { focus-window-up; }
+    Super+F { maximize-column; }
+    Super+C { center-column; }
+    Super+Minus { set-column-width "-10%"; }
+    Super+Equal { set-column-width "+10%"; }
+    
+    Super+WheelScrollDown      cooldown-ms=150 { focus-column-right; }
+    Super+WheelScrollUp        cooldown-ms=150 { focus-column-left; }
+    
+    Super+1 { focus-workspace 1; }
+    Super+2 { focus-workspace 2; }
+    Super+3 { focus-workspace 3; }
+
+
+    XF86AudioRaiseVolume allow-when-locked=true { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.1+" "-l" "1.0"; }
+    XF86AudioLowerVolume allow-when-locked=true { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.1-"; }
+    XF86AudioMute        allow-when-locked=true { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle"; }
+}
+
+window-rule {
+    opacity 0.9
+    draw-border-with-background false
+    geometry-corner-radius 15
+    clip-to-geometry true
+
+    focus-ring {
+        on
+        width 4
+        active-color "#bb9af7"
+        inactive-color "#414868"
+    }
+}
+
+window-rule {
+    match app-id="^(mpv|imv)$"
+    opacity 1.0
+}
