@@ -22,12 +22,19 @@ x-scheme-handler/https=google-chrome.desktop
 text/plain=neovide.desktop
 x-scheme-handler/tg=io.github.kotatogram.desktop
 image/x-xcursor=imv.desktop
+x-scheme-handler/chrome=zen-beta.desktop
+application/x-extension-htm=zen-beta.desktop
+application/x-extension-html=zen-beta.desktop
+application/x-extension-shtml=zen-beta.desktop
+application/xhtml+xml=zen-beta.desktop
+application/x-extension-xhtml=zen-beta.desktop
+application/x-extension-xht=zen-beta.desktop
 
 [Added Associations]
 inode/directory=ru.linux_gaming.PortProton.desktop;mpv.desktop;org.gnome.Lollypop.desktop;yazi.desktop;imv-dir.desktop;deadbeef.desktop;userapp-mpv --no-video --force-window --playlist-enqueue=append %F-6232K3.desktop;userapp-mpv --no-video --force-window --playlist-enqueue=append-D3QRK3.desktop;
 audio/mpeg=mpv.desktop;org.gnome.Lollypop.desktop;umpv.desktop;deadbeef.desktop;io.bassi.Amberol.desktop;userapp-mpv --no-video --force-window --playlist-enqueue=append-D3QRK3.desktop;
 application/x-zerosize=neovide.desktop;
-image/png=org.gnome.Loupe.desktop;qimgv.desktop;imv-dir.desktop;imv.desktop;
+image/png=imv.desktop;org.gnome.Loupe.desktop;qimgv.desktop;imv-dir.desktop;
 application/zip=org.gnome.FileRoller.desktop;
 image/jpeg=org.gnome.Loupe.desktop;oculante.desktop;imv-dir.desktop;qimgv.desktop;
 application/xml=neovide.desktop;
@@ -38,3 +45,9 @@ application/vnd.microsoft.portable-executable=org.gnome.FileRoller.desktop;
 x-scheme-handler/tg=io.github.kotatogram.desktop;
 image/x-xcursor=imv.desktop;
 application/x-shellscript=userapp-.-YYPNN3.desktop;
+application/x-bat=ru.linux_gaming.PortProton.desktop;
+x-scheme-handler/http=zen-beta.desktop;
+x-scheme-handler/https=zen-beta.desktop;
+text/html=zen-beta.desktop;
+image/webp=imv-dir.desktop;
+x-scheme-handler/chrome=zen-beta.desktop;

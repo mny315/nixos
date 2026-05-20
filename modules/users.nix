@@ -1,50 +1,51 @@
 { pkgs, inputs, ... }:
 
 
-#User
+#UserPkgs
 {
   users.users.mny315 = {
     isNormalUser = true;
+    shell = pkgs.zsh;
     extraGroups = [ "wheel" "networkmanager" "video" "render" "gamemode" ];
     packages = with pkgs; [
-      
+     
+      qbittorrent-enhanced 
+      kotatogram-desktop
       bibata-cursors
       google-chrome
-      kotatogram-desktop
       prismlauncher
       fastfetch
       neovide
+      blender
+      tauon
       imv
     ];
   };
 
 #SystemPkgs
   environment.systemPackages = with pkgs; [
-    
-    tela-circle-icon-theme
+     
     vimPlugins.LazyVim
     xwayland-satellite
+    gnome-disk-utility
     wl-clip-persist
     bibata-cursors
     wl-clipboard
-    lm_sensors
     file-roller
     libarchive
-    hyprshot
+    lm_sensors
+    alacritty
+    mangohud
     hyprlock
     udiskie
-    wezterm
-    mangohud
     neovim
-    qbittorrent-enhanced
     ffmpeg
-    fuzzel
     unrar
     p7zip
     unzip
     zip
     git
-      
+    imv
   ];
 
 #Programs
@@ -64,6 +65,12 @@ fonts.packages = with pkgs; [
     lexend
     intel-one-mono
     material-design-icons
+  ];
+
+#Zsh
+  programs.zsh.enable = true;
+  environment.shells = with pkgs; [
+    zsh
   ];
 
 }

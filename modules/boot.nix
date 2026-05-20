@@ -17,7 +17,7 @@
 
 #Kernel tweaks
   boot.kernelParams = [
-    "quiet" "splash" "loglevel=5" "udev.log_level=3" "split_lock_detect=off"
+    "quiet" "splash" "loglevel=5" "udev.log_level=3"
  ];
 
 #ForThunar

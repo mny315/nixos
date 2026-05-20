@@ -4,49 +4,12 @@
 
 #Sound
 security.rtkit.enable = true;
-services.pulseaudio.enable = false;
-
 services.pipewire = {
-  enable = true;
-  alsa.enable = true;
-  alsa.support32Bit = true;
-  pulse.enable = true;
-  wireplumber.enable = true;
-
-  extraConfig.pipewire."92-audio-stability" = {
-    "context.properties" = {
-      "default.clock.rate" = 48000;
-      "default.clock.allowed-rates" = [ 48000 ];
-
-      "default.clock.quantum" = 1024;
-      "default.clock.min-quantum" = 1024;
-      "default.clock.max-quantum" = 4096;
-    };
-  };
-
-  wireplumber.extraConfig."92-disable-audio-suspend" = {
-    "monitor.alsa.rules" = [
-      {
-        matches = [
-          {
-            "node.name" = "~alsa_output.*";
-          }
-        ];
-
-        actions = {
-          update-props = {
-            "session.suspend-timeout-seconds" = 0;
-          };
-        };
-      }
-    ];
-  };
-};
-
-#Bluetooth
-hardware.bluetooth = {
     enable = true;
-    powerOnBoot = true;
+    alsa.enable = true;
+alsa.support32Bit = true;
+pulse.enable = true;
+wireplumber.enable = true;
   };
 
 #Portals

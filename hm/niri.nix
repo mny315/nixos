@@ -1,7 +1,9 @@
-{ ... }:
+{ pkgs, ... }:
 
 {
   xdg.enable = true;
+
+  home.packages = [ pkgs.playerctl ];
 
   home.sessionVariables = {
     GTK_CSD = "0";
@@ -25,6 +27,12 @@
         skip-at-startup
     }
 
+    gestures {
+        hot-corners {
+            off
+        }
+    }
+
     prefer-no-csd
 
     input {
@@ -38,17 +46,11 @@
         touchpad {
             tap
             natural-scroll
-        }
-
-        mouse {
-            scroll-method "on-button-down"
-            scroll-button 274
-            scroll-button-lock
-        }
+        } 
     }
 
     layout {
-        gaps 3
+        gaps 2
         background-color "transparent"
         center-focused-column "never"
         preset-column-widths {
@@ -96,31 +98,29 @@
         passes 3
         offset 3
         noise 0.02
-        saturation 1.3
+        saturation 1.0
     }
-
     spawn-sh-at-startup "obsidian-shell"
     spawn-at-startup "wl-clip-persist" "--clipboard" "regular" "--ignore-event-on-error"
 
     binds {
-        Super+T { spawn "wezterm"; }
+        Super+T { spawn "alacritty"; }
         Mod+L { spawn "hyprlock"; }
         Mod+Tab { spawn "obsidian-shell" "launcher" "toggle"; } 
         Mod+D { spawn "thunar"; }
-        Mod+W { spawn "google-chrome-stable"; }
+        Mod+W { spawn "google-chrome"; }
         Mod+A { spawn "steam"; }
         Mod+S { spawn "kotatogram-desktop"; }
         Mod+R { toggle-window-floating; }
-        Mod+C { spawn "hyprshot" "-m" "region"; }
-        Mod+Z { spawn "flatpak" "run" "com.github.taiko2k.tauonmb"; }
+        Mod+C { spawn "niri" "msg" "action" "screenshot"; } 
+        Mod+Z { spawn "tauon"; }
         Super+E { toggle-overview; }
         Super+Q { close-window; }
         Super+Left  { focus-column-left; }
         Super+Right { focus-column-right; }
         Super+Down  { focus-window-down; }
         Super+Up    { focus-window-up; }
-        Super+F { maximize-column; }
-        Super+C { center-column; }
+        Super+F { maximize-column; } 
         Super+Minus { set-column-width "-10%"; }
         Super+Equal { set-column-width "+10%"; }
         Mod+Return { fullscreen-window; }
@@ -140,6 +140,22 @@
 
         Mod+Shift+E { quit; }
 
+        XF86AudioPlay allow-when-locked=true {
+            spawn "playerctl" "play-pause";
+        }
+
+        XF86AudioPause allow-when-locked=true {
+            spawn "playerctl" "play-pause";
+        }
+
+        XF86AudioNext allow-when-locked=true {
+            spawn "playerctl" "next";
+        }
+
+        XF86AudioPrev allow-when-locked=true {
+            spawn "playerctl" "previous";
+        }
+
         XF86AudioRaiseVolume allow-when-locked=true {
             spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.1+" "-l" "1.0";
         }
@@ -152,6 +168,7 @@
             spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle";
         }
     }
+ 
 
     window-rule {
         opacity 0.8
@@ -166,15 +183,44 @@
 
         focus-ring {
             on
+            active-color "#808080"
+            inactive-color "#666666"
+        }
+
+        border {
+            on
             width 2
-            active-color "#60cdff"
-            inactive-color "#3a3f4b"
+            active-color "#808080"
+            inactive-color "#666666"
         }
     }
 
     layer-rule {
-        match namespace="^(awww-daemon|awww-daemon)$"
+        match namespace="^awww-daemon$"
         place-within-backdrop true
+    }
+
+    layer-rule {
+        match namespace="^obsidian-shell-.*$"
+        geometry-corner-radius 18
+
+        shadow {
+            off
+        }
+
+        background-effect {
+            blur true
+            xray false
+        }
+
+        popups {
+            geometry-corner-radius 18
+
+            background-effect {
+                blur true
+                xray false
+            }
+        }
     }
 
     clipboard {
@@ -189,6 +235,12 @@
     window-rule {
         match app-id=r#"^steam_app_(\\d+)$"#
         open-fullscreen true
+    }
+
+    window-rule {
+        match app-id="steam" title=r#"^notificationtoasts_\d+_desktop$"#
+        default-floating-position x=10 y=10 relative-to="bottom-right"
+        open-focused false
     }
 
     cursor {

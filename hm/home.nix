@@ -10,8 +10,7 @@
     ./apps.nix
     ./thunar.nix
     ./obsidian-shell.nix
-    ./ags.nix
-
+    ./watermark.nix
   ];
 
   programs.home-manager.enable = true;

@@ -5,7 +5,6 @@
     ./hardware-configuration.nix
     ../../modules/boot.nix
     ../../modules/games.nix 
-    ../../modules/nvidia.nix
     ../../modules/services.nix
     ../../modules/users.nix
     ./hardware.nix
@@ -26,6 +25,25 @@ networking.hostName = "laptop";
 #Time
   time.timeZone = "UTC";
   i18n.defaultLocale = "en_US.UTF-8";
+
+#Bluetooth
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
+  };
+
+#Nvidia
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true;
+  };
+
+  services.xserver.videoDrivers = [ "nvidia" ];
+  hardware.nvidia = {
+    modesetting.enable = true;
+    open = false; 
+    nvidiaSettings = true;
+  };
 
 #Alias
 environment.shellAliases = {

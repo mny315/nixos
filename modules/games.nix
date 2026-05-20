@@ -15,7 +15,7 @@ boot.supportedFilesystems = [
       name = "flathub";
       location = "https://dl.flathub.org/repo/flathub.flatpakrepo";
     }];
-    packages = [ "ru.linux_gaming.PortProton" "com.github.taiko2k.tauonmb" ];
+    packages = [ "ru.linux_gaming.PortProton" ];
     uninstallUnmanaged = true;
     overrides = {
       "ru.linux_gaming.PortProton".Context.filesystems = [ "/games" ];
@@ -30,7 +30,6 @@ programs.steam = {
     extraArgs = "-system-composer";
   };
 
-  protontricks.enable = true;
   gamescopeSession.enable = true;
 };
 
