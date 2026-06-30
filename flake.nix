@@ -6,13 +6,12 @@
     nix-flatpak.url = "github:gmodena/nix-flatpak";
 
     home-manager = {
-      url = "github:nix-community/home-manager";
+      url = "github:nix-community/home-manager/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     nixvim = {
-      url = "github:nix-community/nixvim";
-      inputs.nixpkgs.follows = "nixpkgs";
+      url = "github:nix-community/nixvim/main";
     };
 
     niri.url = "github:sodiboo/niri-flake";
@@ -60,6 +59,9 @@
               imports = [
                 ./hm/home.nix
                 nixvim.homeModules.nixvim
+                ({ ... }: {
+                  programs.nixvim.nixpkgs.source = inputs.nixvim.inputs.nixpkgs;
+                })
                 inputs.ags.homeManagerModules.default
               ];
             };

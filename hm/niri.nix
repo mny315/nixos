@@ -7,13 +7,14 @@
 
   home.sessionVariables = {
     GTK_CSD = "0";
+    NIXOS_OZONE_WL = "1";
   };
 
   xdg.configFile."niri/config.kdl".text = ''
 
     output "GIGA-BYTE TECHNOLOGY CO., LTD. M27Q3 0x01010101" {
-        mode "2560x1440@239.999"
-        scale 1
+        mode "2560x1440@299.999"
+             scale 1
         focus-at-startup
     }
 
@@ -62,7 +63,7 @@
 
     overview {
         workspace-shadow {
-            off
+            on
         }
     }
 
@@ -110,7 +111,7 @@
         Mod+D { spawn "thunar"; }
         Mod+W { spawn "google-chrome"; }
         Mod+A { spawn "steam"; }
-        Mod+S { spawn "kotatogram-desktop"; }
+        Mod+S { spawn "materialgram"; }
         Mod+R { toggle-window-floating; }
         Mod+C { spawn "niri" "msg" "action" "screenshot"; } 
         Mod+Z { spawn "tauon"; }
@@ -181,6 +182,16 @@
             xray true
         }
 
+        popups {
+            geometry-corner-radius 13
+            opacity 0.8
+
+            background-effect {
+                blur true
+                xray false
+            }
+        }
+
         focus-ring {
             on
             active-color "#808080"
@@ -189,7 +200,7 @@
 
         border {
             on
-            width 2
+            width 1
             active-color "#808080"
             inactive-color "#666666"
         }
@@ -235,6 +246,7 @@
     window-rule {
         match app-id=r#"^steam_app_(\\d+)$"#
         open-fullscreen true
+        variable-refresh-rate true
     }
 
     window-rule {

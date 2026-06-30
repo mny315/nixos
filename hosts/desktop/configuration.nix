@@ -7,10 +7,10 @@
     ../../modules/games.nix 
     ../../modules/services.nix
     ../../modules/users.nix
- #   ../../modules/vless.nix
+    ../../modules/vless.nix
     ./HyperX.nix
     ./hardware.nix
-        
+
   ];
 
 #hostname
@@ -24,7 +24,6 @@ networking.hostName = "desktop";
 
 #Flakes (God save us)
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
-
 
 #Nvidia
   hardware.graphics = {
@@ -54,4 +53,6 @@ environment.shellAliases = {
     };
 #Nano for emergency
   environment.systemPackages = [ pkgs.nano ];
+
+
 }

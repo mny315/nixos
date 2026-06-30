@@ -6,17 +6,15 @@
   users.users.mny315 = {
     isNormalUser = true;
     shell = pkgs.zsh;
-    extraGroups = [ "wheel" "networkmanager" "video" "render" "gamemode" ];
+    extraGroups = [ "wheel" "networkmanager" "video" "render" "gamemode" "scanner" "lp" ];
     packages = with pkgs; [
      
       qbittorrent-enhanced 
-      kotatogram-desktop
       bibata-cursors
       google-chrome
       prismlauncher
       fastfetch
       neovide
-      blender
       tauon
       imv
     ];
@@ -25,24 +23,31 @@
 #SystemPkgs
   environment.systemPackages = with pkgs; [
      
+    fscrypt-experimental
     vimPlugins.LazyVim
     xwayland-satellite
     gnome-disk-utility
     wl-clip-persist
     bibata-cursors
+    materialgram
     wl-clipboard
+    simple-scan
     file-roller
+    libreoffice
     libarchive
     lm_sensors
-    alacritty
+    alacritty 
     mangohud
     hyprlock
     udiskie
+    python3
     neovim
     ffmpeg
     unrar
-    p7zip
+    _7zz
     unzip
+    gimp
+    cava
     zip
     git
     imv
@@ -62,8 +67,7 @@ programs.thunar = {
 
 #Fonts
 fonts.packages = with pkgs; [
-    lexend
-    intel-one-mono
+    ibm-plex
     material-design-icons
   ];
 

@@ -11,6 +11,7 @@
     ./thunar.nix
     ./obsidian-shell.nix
     ./watermark.nix
+
   ];
 
   programs.home-manager.enable = true;

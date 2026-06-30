@@ -1,6 +1,14 @@
 { pkgs, ... }:
 
 let
+  hyperxDynamicLinker = pkgs.stdenv.cc.bintools.dynamicLinker;
+
+  hyperxLibraryPath = pkgs.lib.makeLibraryPath [
+    pkgs.systemd
+    pkgs.stdenv.cc.cc.lib
+    pkgs.glibc
+  ];
+
   hyperxUdevRules = pkgs.writeTextFile {
     name = "hyperx-udev-rules";
     destination = "/lib/udev/rules.d/99-HyperHeadset.rules";
@@ -18,6 +26,7 @@ let
       jq
       gnugrep
       coreutils
+      systemd
     ];
 
     text = ''
@@ -26,18 +35,62 @@ let
       set -u
 
       CLI="$HOME/.local/bin/hyper_headset_cli"
+      CLI_LOADER="${hyperxDynamicLinker}"
+      CLI_LIBRARY_PATH="${hyperxLibraryPath}"
       POLL="''${POLL:-1}"
+
+      # hyper_headset_cli is an external ELF binary in ~/.local/bin. After the
+      # update its embedded ELF interpreter can point at a collected Nix store
+      # path. LD_LIBRARY_PATH alone cannot fix that, because the kernel needs
+      # the interpreter before the process environment exists. Run the binary
+      # through the current Nix dynamic linker explicitly.
+      export LD_LIBRARY_PATH="$CLI_LIBRARY_PATH:''${LD_LIBRARY_PATH:-}"
+
+      log() {
+        echo "$(date '+%F %T') $*" >&2
+      }
+
+      pulse_ready() {
+        pactl info >/dev/null 2>&1
+      }
+
+      wait_pulse() {
+        local attempts=30
+
+        while [ "$attempts" -gt 0 ]; do
+          if pulse_ready; then
+            return 0
+          fi
+
+          attempts=$((attempts - 1))
+          sleep 1
+        done
+
+        log "PulseAudio/PipeWire pactl API is not ready after waiting"
+        return 1
+      }
 
       get_sinks() {
         pactl -f json list sinks 2>/dev/null || echo "[]"
       }
 
+      default_sink() {
+        pactl -f json info 2>/dev/null | jq -r '.default_sink_name // ""' 2>/dev/null
+      }
+
       hyperx_sink() {
         get_sinks | jq -r '
+          def haystack:
+            [
+              .name? // "",
+              .description? // "",
+              .properties?."device.description"? // "",
+              .properties?."device.product.name"? // "",
+              .properties?."alsa.card_name"? // ""
+            ] | join(" ");
+
           .[]? | objects | select(
-            (.name? // "" | test("usb-HP__Inc_HyperX_Cloud_III_S_Wireless.*analog-stereo"; "i")) or
-            (.description? // "" | test("HyperX Cloud III S Wireless"; "i")) or
-            (.properties?."device.description"? // "" | test("HyperX Cloud III S Wireless"; "i"))
+            haystack | test("HyperX Cloud III S Wireless|usb-HP__Inc_HyperX_Cloud_III_S_Wireless"; "i")
           ) | .name? // ""
         ' 2>/dev/null | head -n 1
       }
@@ -47,20 +100,24 @@ let
         sinks=$(get_sinks)
 
         local patterns=(
-          'usb-Generic_USB_Audio-00\.HiFi__SPDIF__sink|USB Audio S/PDIF Output'
-          'usb-Generic_USB_Audio-00\.HiFi__Speaker__sink|USB Audio Speakers'
-          'usb-Generic_USB_Audio-00\.HiFi__Headphones__sink|USB Audio Front Headphones'
+          'usb-Generic_USB_Audio.*(HiFi|SPDIF|Speaker|Headphones)|USB Audio (S/PDIF Output|Speakers|Front Headphones)'
           'pci-.*\.hdmi-stereo|Digital Stereo \(HDMI\)'
         )
 
-        for p in "''${patterns[@]}"; do
+        local pattern
+        for pattern in "''${patterns[@]}"; do
           local match
-          match=$(printf '%s' "$sinks" | jq -r --arg p "$p" '
-            .[]? | objects | select(
-              (.name? // "" | test($p; "i")) or
-              (.description? // "" | test($p; "i")) or
-              (.properties?."device.description"? // "" | test($p; "i"))
-            ) | .name? // ""
+          match=$(printf '%s' "$sinks" | jq -r --arg pattern "$pattern" '
+            def haystack:
+              [
+                .name? // "",
+                .description? // "",
+                .properties?."device.description"? // "",
+                .properties?."device.product.name"? // "",
+                .properties?."alsa.card_name"? // ""
+              ] | join(" ");
+
+            .[]? | objects | select(haystack | test($pattern; "i")) | .name? // ""
           ' 2>/dev/null | head -n 1)
 
           if [ -n "$match" ] && [ "$match" != "null" ]; then
@@ -68,17 +125,40 @@ let
             return 0
           fi
         done
-        return 1
+
+        printf '%s' "$sinks" | jq -r '
+          def haystack:
+            [
+              .name? // "",
+              .description? // "",
+              .properties?."device.description"? // "",
+              .properties?."device.product.name"? // "",
+              .properties?."alsa.card_name"? // ""
+            ] | join(" ");
+
+          .[]? | objects | select(
+            (.name? // "" | test("auto_null|dummy"; "i") | not) and
+            (haystack | test("HyperX Cloud III S Wireless|usb-HP__Inc_HyperX_Cloud_III_S_Wireless"; "i") | not)
+          ) | .name? // ""
+        ' 2>/dev/null | head -n 1
       }
 
       headset_connected() {
+        if [ ! -e "$CLI" ]; then
+          log "CLI is missing: $CLI"
+          echo ""
+          return 0
+        fi
+
         if [ ! -x "$CLI" ]; then
+          log "CLI is not executable: $CLI"
           echo ""
           return 0
         fi
 
         local out
-        if ! out=$(timeout --kill-after=1s 5s "$CLI" 2>/dev/null); then
+        if ! out=$(timeout --kill-after=1s 5s "$CLI_LOADER" --library-path "$CLI_LIBRARY_PATH" "$CLI" 2>&1); then
+          log "CLI failed through loader $CLI_LOADER: $out"
           echo ""
           return 0
         fi
@@ -89,8 +169,28 @@ let
         if [ -n "$state" ]; then
           echo "$state"
         else
+          log "CLI output has no Connected field: $out"
           echo ""
         fi
+      }
+
+      target_for_state() {
+        local state="$1"
+        local target=""
+
+        if [ "$state" = "true" ]; then
+          target=$(hyperx_sink)
+        elif [ "$state" = "false" ]; then
+          target=$(fallback_sink)
+        fi
+
+        if [ -n "$target" ] && [ "$target" != "null" ]; then
+          echo "$target"
+          return 0
+        fi
+
+        log "No target sink found for headset state: $state"
+        return 1
       }
 
       move_streams() {
@@ -108,36 +208,19 @@ let
         [ -n "$target" ] || return 0
 
         local current
-        current=$(pactl -f json info 2>/dev/null | jq -r '.default_sink_name // ""' 2>/dev/null)
+        current=$(default_sink)
 
         if [ "$current" != "$target" ]; then
-          echo "$(date '+%F %T') set-default sink $target"
-          pactl set-default-sink "$target" || true
+          log "set-default sink $target"
+          pactl set-default-sink "$target" 2>/dev/null || true
         fi
 
         move_streams "$target"
       }
 
-      ensure_state() {
-        local state="$1"
-        local target=""
-
-        if [ "$state" = "true" ]; then
-          target=$(hyperx_sink)
-        elif [ "$state" = "false" ]; then
-          target=$(fallback_sink)
-        fi
-
-        if [ -n "$target" ] && [ "$target" != "null" ]; then
-          switch_to "$target"
-          return 0
-        else
-          return 1
-        fi
-      }
-
       SLEEP_PID=""
       SUBSCRIBE_PID=""
+      MAIN_PID="$$"
 
       wake_sleep() {
         if [ -n "''${SLEEP_PID:-}" ]; then
@@ -154,38 +237,48 @@ let
         fi
       }
 
-      trap wake_sleep USR1
-      trap cleanup EXIT INT TERM
+      shutdown() {
+        cleanup
+        exit 0
+      }
 
-      (
-        pactl subscribe 2>/dev/null | while read -r line; do
-          case "$line" in
-            *"sink"*) kill -USR1 $$ 2>/dev/null || true ;;
-          esac
+      subscribe_loop() {
+        while true; do
+          pactl subscribe 2>/dev/null | while IFS= read -r line; do
+            case "$line" in
+              *"sink"*|*"server"*) kill -USR1 "$MAIN_PID" 2>/dev/null || true ;;
+            esac
+          done
+          sleep 1
         done
-      ) &
+      }
+
+      trap wake_sleep USR1
+      trap cleanup EXIT
+      trap shutdown INT TERM
+
+      wait_pulse || true
+
+      subscribe_loop &
       SUBSCRIBE_PID=$!
 
       last_state=""
+      last_target=""
 
       while true; do
         state=$(headset_connected)
 
         if [ "$state" = "true" ] || [ "$state" = "false" ]; then
-          if [ "$state" != "$last_state" ]; then
-            if ensure_state "$state"; then
+          target=""
+          if target=$(target_for_state "$state"); then
+            current=$(default_sink)
+            if [ "$state" != "$last_state" ] || [ "$target" != "$last_target" ] || [ "$current" != "$target" ]; then
+              switch_to "$target"
               last_state="$state"
-            else
-              if [ "$state" = "false" ]; then
-                 last_state="$state"
-              fi
+              last_target="$target"
             fi
-          elif [ "$state" = "true" ]; then
-            current=$(pactl -f json info 2>/dev/null | jq -r '.default_sink_name // ""' 2>/dev/null)
-            target=$(hyperx_sink)
-            if [ -n "$target" ] && [ "$target" != "null" ] && [ "$current" != "$target" ]; then
-               ensure_state "$state"
-            fi
+          else
+            last_target=""
           fi
         fi
 
@@ -203,11 +296,14 @@ in
   systemd.user.services.hyperx-audio-watch = {
     description = "HyperX headset audio autoswitch";
     wantedBy = [ "default.target" ];
-    wants = [ "pipewire.service" "pipewire-pulse.service" "wireplumber.service" ];
-    after = [ "pipewire.service" "pipewire-pulse.service" "wireplumber.service" ];
-    unitConfig = {
-      ConditionPathExists = "%h/.local/bin/hyper_headset_cli";
+
+    environment = {
+      LD_LIBRARY_PATH = hyperxLibraryPath;
     };
+
+    # Do not hard-bind this to PipeWire/WirePlumber unit names. The script waits
+    # for the PulseAudio-compatible PipeWire API itself, which is less brittle
+    # across NixOS/PipeWire updates.
     serviceConfig = {
       ExecStart = "${hyperxAudioWatch}/bin/hyperx-audio-watch";
       Restart = "always";
