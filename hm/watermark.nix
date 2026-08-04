@@ -1,10 +1,8 @@
 { pkgs, ... }:
 
 let
-  lib = pkgs.lib;
-  python = pkgs.python311;
-
-  libPath = lib.makeLibraryPath (
+  # IOPaint libraries
+  libPath = pkgs.lib.makeLibraryPath (
     [
       pkgs.stdenv.cc.cc.lib
       pkgs.zlib
@@ -17,9 +15,10 @@ let
       pkgs.libglvnd
       pkgs.glib
     ]
-    ++ lib.optional (pkgs ? libxcrypt-legacy) pkgs.libxcrypt-legacy
+    ++ pkgs.lib.optional (pkgs ? libxcrypt-legacy) pkgs.libxcrypt-legacy
   );
 
+  # IOPaint
   iopaint-gpu = pkgs.writeShellScriptBin "iopaint-gpu" ''
     set -euo pipefail
 
@@ -173,7 +172,7 @@ PY
       echo "rebuilding venv"
       rm -rf "$VENV"
 
-      ${pkgs.uv}/bin/uv venv "$VENV" --python ${python}/bin/python --seed
+      ${pkgs.uv}/bin/uv venv "$VENV" --python ${pkgs.python311}/bin/python --seed
 
       "$VENV/bin/python" -m pip install --upgrade pip wheel setuptools
 
@@ -319,6 +318,7 @@ PY
     open_browser_and_wait
   '';
 
+  # IOPaint icon
   iopaint-gpu-icon = pkgs.writeTextFile {
     name = "iopaint-gpu-icon";
     destination = "/share/icons/hicolor/scalable/apps/iopaint-gpu.svg";
@@ -343,6 +343,7 @@ PY
     '';
   };
 
+  # IOPaint desktop entry
   iopaint-gpu-desktop = pkgs.makeDesktopItem {
     name = "iopaint-gpu";
     desktopName = "IOPaint GPU";
@@ -355,6 +356,7 @@ PY
   };
 in
 {
+  # IOPaint packages
   home.packages = [
     iopaint-gpu
     iopaint-gpu-desktop

@@ -1,11 +1,10 @@
-{ config, ... }: 
-let
-  dotfilesPath = "/etc/nixos/hm/dotfiles";
-in
+{ config, ... }:
+
 {
-  xdg.configFile = builtins.mapAttrs 
-    (name: _: { 
-      source = config.lib.file.mkOutOfStoreSymlink "${dotfilesPath}/${name}"; 
-    }) 
+  # Dotfiles
+  xdg.configFile = builtins.mapAttrs
+    (name: _: {
+      source = config.lib.file.mkOutOfStoreSymlink "/etc/nixos/hm/dotfiles/${name}";
+    })
     (builtins.readDir ./dotfiles);
 }

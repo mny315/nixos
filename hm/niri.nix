@@ -1,28 +1,22 @@
-{ pkgs, ... }:
+{ pkgs, niriOutputConfig, ... }:
 
 {
+  # XDG
   xdg.enable = true;
 
+  # Playerctl
   home.packages = [ pkgs.playerctl ];
 
+  # Wayland session
   home.sessionVariables = {
     GTK_CSD = "0";
     NIXOS_OZONE_WL = "1";
   };
 
+  # Niri
   xdg.configFile."niri/config.kdl".text = ''
 
-    output "GIGA-BYTE TECHNOLOGY CO., LTD. M27Q3 0x01010101" {
-        mode "2560x1440@299.999"
-             scale 1
-        focus-at-startup
-    }
-
-    output "BOE 0x09F9 Unknown" {
-        mode "2560x1440@240.003"
-        scale 1.25
-        focus-at-startup
-    }
+    ${niriOutputConfig}
 
     hotkey-overlay {
         skip-at-startup
@@ -47,11 +41,11 @@
         touchpad {
             tap
             natural-scroll
-        } 
+        }
     }
 
     layout {
-        gaps 2
+        gaps 3
         background-color "transparent"
         center-focused-column "never"
         preset-column-widths {
@@ -97,23 +91,23 @@
 
     blur {
         passes 3
-        offset 3
+        offset 2
         noise 0.02
         saturation 1.0
     }
-    spawn-sh-at-startup "obsidian-shell"
+    spawn-at-startup "obsidian-bar"
     spawn-at-startup "wl-clip-persist" "--clipboard" "regular" "--ignore-event-on-error"
 
     binds {
         Super+T { spawn "alacritty"; }
         Mod+L { spawn "hyprlock"; }
-        Mod+Tab { spawn "obsidian-shell" "launcher" "toggle"; } 
+        Mod+Tab { spawn "obsidian-bar" "launcher"; }
         Mod+D { spawn "thunar"; }
         Mod+W { spawn "google-chrome"; }
         Mod+A { spawn "steam"; }
         Mod+S { spawn "materialgram"; }
         Mod+R { toggle-window-floating; }
-        Mod+C { spawn "niri" "msg" "action" "screenshot"; } 
+        Mod+C { screenshot; }
         Mod+Z { spawn "tauon"; }
         Super+E { toggle-overview; }
         Super+Q { close-window; }
@@ -121,7 +115,7 @@
         Super+Right { focus-column-right; }
         Super+Down  { focus-window-down; }
         Super+Up    { focus-window-up; }
-        Super+F { maximize-column; } 
+        Super+F { maximize-column; }
         Super+Minus { set-column-width "-10%"; }
         Super+Equal { set-column-width "+10%"; }
         Mod+Return { fullscreen-window; }
@@ -169,7 +163,7 @@
             spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle";
         }
     }
- 
+
 
     window-rule {
         opacity 0.8
@@ -212,11 +206,11 @@
     }
 
     layer-rule {
-        match namespace="^obsidian-shell-.*$"
+        match namespace="^obsidian-bar-.*$"
         geometry-corner-radius 18
 
         shadow {
-            off
+            on
         }
 
         background-effect {
@@ -245,6 +239,7 @@
 
     window-rule {
         match app-id=r#"^steam_app_(\\d+)$"#
+        opacity 1.0
         open-fullscreen true
         variable-refresh-rate true
     }

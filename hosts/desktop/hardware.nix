@@ -1,21 +1,23 @@
-{ config, lib, pkgs, ... }:
+{ ... }:
 
 {
+  # AMD
   boot.kernelModules = [ "kvm-amd" ];
 
   boot.kernelParams = [
     "amd_pstate=guided"
   ];
 
+  # Firmware
   hardware.enableRedistributableFirmware = true;
   hardware.cpu.amd.updateMicrocode = true;
 
 
+  # I2C
   hardware.i2c.enable = true;
   users.users.mny315.extraGroups = [ "i2c" ];
 
-  services.power-profiles-daemon.enable = true;
-
+  # Games
   fileSystems."/mnt/games" = {
     device = "/dev/disk/by-label/Games";
     fsType = "ext4";
@@ -24,21 +26,16 @@
 
 #Bluetooth
 hardware.bluetooth = {
-  enable = false;
+  enable = true;
   powerOnBoot = false;
 };
 
-boot.blacklistedKernelModules = [
-  "btusb"
-];
 
-#HyprX
-services.udev.extraRules = ''
-  SUBSYSTEMS=="usb", ATTRS{idVendor}=="03f0", ATTRS{idProduct}=="06be", MODE="0666"
-  KERNEL=="hidraw*", ATTRS{idVendor}=="03f0", ATTRS{idProduct}=="06be", MODE="0666"
-'';
+#HyperX
+services.hyperx-cloud-3-switchd.enable = true;
 
-
-
+#boot.blacklistedKernelModules = [
+#  "btusb"
+#];
 
 }

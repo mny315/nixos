@@ -1,80 +1,92 @@
-{ pkgs, inputs, ... }:
+{ pkgs, ... }:
 
-
-#UserPkgs
 {
+  # User
   users.users.mny315 = {
     isNormalUser = true;
     shell = pkgs.zsh;
-    extraGroups = [ "wheel" "networkmanager" "video" "render" "gamemode" "scanner" "lp" ];
+    extraGroups = [
+      "wheel"
+      "networkmanager"
+      "video"
+      "render"
+      "gamemode"
+      "scanner"
+      "lp"
+    ];
+
     packages = with pkgs; [
-     
-      qbittorrent-enhanced 
-      bibata-cursors
+      # Applications
       google-chrome
-      prismlauncher
-      fastfetch
-      neovide
-      tauon
       imv
+      neovide
+      prismlauncher
+      qbittorrent-enhanced
+      tauon
+
+      # Utilities
+      fastfetch
     ];
   };
 
-#SystemPkgs
+  # System packages
   environment.systemPackages = with pkgs; [
-     
-    fscrypt-experimental
-    vimPlugins.LazyVim
-    xwayland-satellite
-    gnome-disk-utility
-    wl-clip-persist
-    bibata-cursors
-    materialgram
-    wl-clipboard
-    simple-scan
+    # Desktop integration
     file-roller
-    libreoffice
-    libarchive
-    lm_sensors
-    alacritty 
-    mangohud
+    gnome-disk-utility
     hyprlock
+    loupe
+    materialgram
+    simple-scan
     udiskie
-    python3
-    neovim
-    ffmpeg
-    unrar
-    _7zz
-    unzip
+    wl-clip-persist
+    wl-clipboard
+    xwayland-satellite
+
+    # Applications
     gimp
+    libreoffice
+
+    # Media and hardware tools
     cava
+    ffmpeg
+    lm_sensors
+
+    # Archives and filesystems
+    _7zz
+    fscrypt-experimental
+    libarchive
+    unrar
+    unzip
     zip
+
+    # Development and runtime tools
     git
-    imv
+    python3
   ];
 
-#Programs
-  programs.xwayland.enable = true;
-  programs.xfconf.enable = true;
+  programs = {
+    # Thunar
+    thunar = {
+      enable = true;
+      plugins = [
+        pkgs.thunar-archive-plugin
+        pkgs.thunar-volman
+      ];
+    };
 
-programs.thunar = {
-    enable = true;
-    plugins = [
-      pkgs.thunar-archive-plugin
-      pkgs.thunar-volman
-    ];
+    # Xfconf
+    xfconf.enable = true;
+    # Zsh
+    zsh.enable = true;
   };
 
-#Fonts
-fonts.packages = with pkgs; [
+  # Fonts
+  fonts.packages = with pkgs; [
     ibm-plex
     material-design-icons
   ];
 
-#Zsh
-  programs.zsh.enable = true;
-  environment.shells = with pkgs; [
-    zsh
-  ];
-
+  # Zsh
+  environment.shells = [ pkgs.zsh ];
 }

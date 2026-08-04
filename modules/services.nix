@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }:
+{ pkgs, ... }:
 
 {
   # Sound
@@ -15,12 +15,7 @@
   # Portals
   xdg.portal = {
     enable = true;
-    config = {
-      common.default = [ "gtk" ];
-      niri.default = lib.mkForce [ "gtk" ];
-    };
-    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
-    xdgOpenUsePortal = true;
+    xdgOpenUsePortal = false;
   };
 
   # Network
@@ -37,24 +32,31 @@
   services.fstrim.enable = true;
   services.hypridle.enable = true;
 
-  services.greetd = {
-    enable = true;
-    settings = {
-      terminal = {
-        vt = 1;
-      };
+  # Greetd
+services.greetd = {
+  enable = true;
+  settings = {
+    terminal = {
+      vt = 1;
+    };
 
-      initial_session = {
-        command = "niri-session";
-        user = "mny315";
-      };
-
-      default_session = {
-        command = "${pkgs.tuigreet}/bin/tuigreet --time --user-menu --cmd niri-session";
-        user = "greeter";
-      };
+    default_session = {
+      command = "${pkgs.tuigreet}/bin/tuigreet --time --user-menu --cmd niri-session";
+      user = "greeter";
     };
   };
+};
+
+  #Steam
+programs.steam = {
+  enable = true;
+
+  package = pkgs.steam.override {
+    extraArgs = "-system-composer";
+  };
+
+  gamescopeSession.enable = true;
+};
 
   # Pantum
   hardware.sane = {
@@ -65,6 +67,7 @@
     ];
   };
 
+# CUPS
 services.printing = {
   enable = true;
   drivers = with pkgs; [
@@ -73,24 +76,23 @@ services.printing = {
   ];
 };
 
+# IPP USB
 services.ipp-usb.enable = true;
 
+# Avahi
 services.avahi = {
   enable = true;
   nssmdns4 = true;
   openFirewall = true;
 };
 
+# Printer group
 users.users.mny315.extraGroups = [ "lpadmin" ];
 
+# Printing tools
 environment.systemPackages = with pkgs; [
   system-config-printer
   cups
 ];
-
-nixpkgs.config.allowUnfreePredicate = pkg:
-  builtins.elem (pkgs.lib.getName pkg) [
-    "pantum-driver"
-  ]; 
 
 }

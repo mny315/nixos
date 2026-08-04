@@ -35,16 +35,6 @@ hardware.nvidia.prime = {
   };
 
 #services
-  services.power-profiles-daemon.enable = true;
-
-#SystemdStuck
-  systemd.settings = {
-    Manager = {
-      DefaultTimeoutStopSec = "10s";
-    };
-  };
-
-
 #fan control
 systemd.services.msi-ec-fan-control = {
   description = "Smart MSI EC Fan Control";

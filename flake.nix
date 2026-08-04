@@ -2,88 +2,78 @@
   description = "NixOS Configuration Home Manager";
 
   inputs = {
+    # Nixpkgs
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    nix-flatpak.url = "github:gmodena/nix-flatpak";
 
+    # Home Manager
     home-manager = {
       url = "github:nix-community/home-manager/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Nixvim
     nixvim = {
       url = "github:nix-community/nixvim/main";
     };
 
-    niri.url = "github:sodiboo/niri-flake";
-
-    astal = {
-      url = "github:Aylur/astal";
+    # Obsidian Bar
+    obsidian-bar = {
+      url = "github:mny315/Obsidian-bar";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    ags = {
-      url = "github:Aylur/ags";
+    # HyperX Cloud III S audio switch
+    hyperx-cloud-3-switchd = {
+      url = "github:mny315/Hyperx-cloud-3-switchd";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.astal.follows = "astal";
     };
 
-    obsidian-shell = {
-      url = "github:mny315/Obsidian-shell";
+    # PortProtonQt
+    portprotonqt-src = {
+      url = "github:Boria138/PortProtonQt/v1.3.1";
       flake = false;
     };
   };
 
-  outputs = { self, nixpkgs, home-manager, nix-flatpak, nixvim, niri, ... } @ inputs:
-    let
-      specialArgs = { inherit inputs self; };
+  outputs = { nixpkgs, home-manager, nixvim, ... } @ inputs: {
+    # Hosts
+    nixosConfigurations = builtins.mapAttrs (
+      _: hostModule:
+      nixpkgs.lib.nixosSystem {
+        specialArgs = { inherit inputs; };
 
-      commonModules = [
-        niri.nixosModules.niri
-        nix-flatpak.nixosModules.nix-flatpak
-        home-manager.nixosModules.home-manager
+        # Shared modules
+        modules = [
+          hostModule
+          home-manager.nixosModules.home-manager
+          ({ pkgs, ... }: {
+            # Obsidian Bar
+            environment.systemPackages = [
+              inputs.obsidian-bar.packages.${pkgs.stdenv.hostPlatform.system}.default
+            ];
 
-        ({ pkgs, ... }: {
-          programs.niri = {
-            enable = true;
-            package = niri.packages.${pkgs.stdenv.hostPlatform.system}.niri-unstable;
-          };
+            # Niri
+            programs.niri = {
+              enable = true;
+              useNautilus = false;
+            };
 
-          environment.sessionVariables.NIXOS_OZONE_WL = "1";
-
-          home-manager = {
-            useGlobalPkgs = true;
-            useUserPackages = true;
-            extraSpecialArgs = specialArgs;
-
-            users.mny315 = {
-              imports = [
+            # Home Manager
+            home-manager = {
+              useGlobalPkgs = true;
+              useUserPackages = true;
+              extraSpecialArgs.theme = import ./hm/theme/palette.nix;
+              users.mny315.imports = [
                 ./hm/home.nix
                 nixvim.homeModules.nixvim
-                ({ ... }: {
-                  programs.nixvim.nixpkgs.source = inputs.nixvim.inputs.nixpkgs;
-                })
-                inputs.ags.homeManagerModules.default
               ];
             };
-          };
-        })
-      ];
-    in
-    {
-      nixosConfigurations = {
-        laptop = nixpkgs.lib.nixosSystem {
-          inherit specialArgs;
-          modules = [
-            ./hosts/laptop/configuration.nix
-          ] ++ commonModules;
-        };
-
-        desktop = nixpkgs.lib.nixosSystem {
-          inherit specialArgs;
-          modules = [
-            ./hosts/desktop/configuration.nix
-          ] ++ commonModules;
-        };
-      };
+          })
+        ];
+      }
+    ) {
+      laptop = ./hosts/laptop/configuration.nix;
+      desktop = ./hosts/desktop/configuration.nix;
     };
+  };
 }

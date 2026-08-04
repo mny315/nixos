@@ -1,6 +1,11 @@
 { config, pkgs, ... }:
 
 {
+  # Local binaries
+  home.sessionPath = [
+    "$HOME/.local/bin"
+  ];
+
   # Zsh
   programs.zsh = {
     enable = true;
@@ -33,7 +38,7 @@
     };
   };
 
-  # Mangohud
+  # MangoHud
   programs.mangohud = {
     enable = true;
 
@@ -61,7 +66,7 @@
     };
   };
 
-  # mpv
+  # MPV
   programs.mpv = {
     enable = true;
 
@@ -89,19 +94,10 @@
     };
 
     scriptOpts.modernx = {
-      # Держать OSC открытым, пока курсор реально на элементах управления.
       osc_keep_with_cursor = true;
-
-      # Возврат к дефолтному таймауту ModernX: панель не висит вечность.
       hide_timeout = 1500;
-
-      # Показывать OSC только при наведении в нижнюю область,
-      # а не от любого движения мыши по видео в fullscreen.
       bottom_hover = true;
-
       show_on_pause = true;
-
-      # Не закреплять OSC навсегда на паузе: курсор на панели всё равно удержит её.
       keep_on_pause = false;
 
       window_top_bar = "no";
@@ -235,7 +231,7 @@
     }
   '';
 
-  # Nixvim 
+  # Nixvim
   programs.nixvim = {
     enable = true;
     defaultEditor = true;

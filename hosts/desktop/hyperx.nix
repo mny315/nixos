@@ -1,14 +1,17 @@
 { pkgs, ... }:
 
 let
+  # HyperX linker
   hyperxDynamicLinker = pkgs.stdenv.cc.bintools.dynamicLinker;
 
+  # HyperX libraries
   hyperxLibraryPath = pkgs.lib.makeLibraryPath [
     pkgs.systemd
     pkgs.stdenv.cc.cc.lib
     pkgs.glibc
   ];
 
+  # HyperX udev
   hyperxUdevRules = pkgs.writeTextFile {
     name = "hyperx-udev-rules";
     destination = "/lib/udev/rules.d/99-HyperHeadset.rules";
@@ -18,6 +21,7 @@ let
     '';
   };
 
+  # HyperX audio
   hyperxAudioWatch = pkgs.writeShellApplication {
     name = "hyperx-audio-watch";
 
@@ -38,6 +42,9 @@ let
       CLI_LOADER="${hyperxDynamicLinker}"
       CLI_LIBRARY_PATH="${hyperxLibraryPath}"
       POLL="''${POLL:-1}"
+      # Preferred desktop speakers. Override from the systemd service environment
+      # if the PipeWire node name ever changes again after an update.
+      SPEAKER_SINK="''${SPEAKER_SINK:-alsa_output.usb-Generic_USB_Audio-00.pro-output-2}"
 
       # hyper_headset_cli is an external ELF binary in ~/.local/bin. After the
       # update its embedded ELF interpreter can point at a collected Nix store
@@ -95,38 +102,28 @@ let
         ' 2>/dev/null | head -n 1
       }
 
-      fallback_sink() {
+      speaker_sink() {
         local sinks
         sinks=$(get_sinks)
 
-        local patterns=(
-          'usb-Generic_USB_Audio.*(HiFi|SPDIF|Speaker|Headphones)|USB Audio (S/PDIF Output|Speakers|Front Headphones)'
-          'pci-.*\.hdmi-stereo|Digital Stereo \(HDMI\)'
-        )
+        # First use the exact, known-good PipeWire sink for the desktop speakers.
+        # Do not fall back to an arbitrary non-HyperX sink: that was the cause of
+        # the output jumping between Pro, Pro 1, HDMI, etc. every polling cycle.
+        local exact
+        exact=$(printf '%s' "$sinks" | jq -r --arg name "$SPEAKER_SINK" '
+          .[]? | objects | select((.name? // "") == $name) | .name? // ""
+        ' 2>/dev/null | head -n 1)
 
-        local pattern
-        for pattern in "''${patterns[@]}"; do
-          local match
-          match=$(printf '%s' "$sinks" | jq -r --arg pattern "$pattern" '
-            def haystack:
-              [
-                .name? // "",
-                .description? // "",
-                .properties?."device.description"? // "",
-                .properties?."device.product.name"? // "",
-                .properties?."alsa.card_name"? // ""
-              ] | join(" ");
+        if [ -n "$exact" ] && [ "$exact" != "null" ]; then
+          echo "$exact"
+          return 0
+        fi
 
-            .[]? | objects | select(haystack | test($pattern; "i")) | .name? // ""
-          ' 2>/dev/null | head -n 1)
-
-          if [ -n "$match" ] && [ "$match" != "null" ]; then
-            echo "$match"
-            return 0
-          fi
-        done
-
-        printf '%s' "$sinks" | jq -r '
+        # Compatibility with the older profile names that existed before the
+        # PipeWire/WirePlumber update. Restrict matching to the same USB Audio
+        # device instead of picking the first unrelated sink in the system.
+        local legacy
+        legacy=$(printf '%s' "$sinks" | jq -r '
           def haystack:
             [
               .name? // "",
@@ -137,10 +134,22 @@ let
             ] | join(" ");
 
           .[]? | objects | select(
-            (.name? // "" | test("auto_null|dummy"; "i") | not) and
-            (haystack | test("HyperX Cloud III S Wireless|usb-HP__Inc_HyperX_Cloud_III_S_Wireless"; "i") | not)
+            haystack | test(
+              "usb-Generic_USB_Audio.*(HiFi|SPDIF|Speaker|Headphones)|USB Audio (S/PDIF Output|Speakers|Front Headphones)";
+              "i"
+            )
           ) | .name? // ""
-        ' 2>/dev/null | head -n 1
+        ' 2>/dev/null | head -n 1)
+
+        if [ -n "$legacy" ] && [ "$legacy" != "null" ]; then
+          echo "$legacy"
+          return 0
+        fi
+
+        # If the preferred speakers disappear briefly, keep the current output
+        # and retry on the next poll. Never jump to HDMI or another Pro endpoint.
+        log "Preferred speaker sink is unavailable: $SPEAKER_SINK"
+        return 1
       }
 
       headset_connected() {
@@ -181,7 +190,7 @@ let
         if [ "$state" = "true" ]; then
           target=$(hyperx_sink)
         elif [ "$state" = "false" ]; then
-          target=$(fallback_sink)
+          target=$(speaker_sink)
         fi
 
         if [ -n "$target" ] && [ "$target" != "null" ]; then
@@ -291,8 +300,10 @@ let
   };
 in
 {
+  # HyperX udev
   services.udev.packages = [ hyperxUdevRules ];
 
+  # HyperX audio
   systemd.user.services.hyperx-audio-watch = {
     description = "HyperX headset audio autoswitch";
     wantedBy = [ "default.target" ];
