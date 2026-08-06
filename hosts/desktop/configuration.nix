@@ -9,7 +9,7 @@
     ../../modules/users.nix
     ../../modules/vless.nix
     ../../modules/portprotonqt.nix
-#    ./hyperx.nix
+    ../../modules/hyperx.nix
     ./hardware.nix
   ];
 

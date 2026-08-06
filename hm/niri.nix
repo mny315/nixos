@@ -95,7 +95,7 @@
         noise 0.02
         saturation 1.0
     }
-    spawn-at-startup "obsidian-bar"
+    spawn-sh-at-startup "sleep 0.7; exec obsidian-bar" 
     spawn-at-startup "wl-clip-persist" "--clipboard" "regular" "--ignore-event-on-error"
 
     binds {
@@ -201,7 +201,7 @@
     }
 
     layer-rule {
-        match namespace="^awww-daemon$"
+        match namespace="^mpvpaper$"
         place-within-backdrop true
     }
 

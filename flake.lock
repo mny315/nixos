@@ -42,7 +42,27 @@
         "type": "github"
       }
     },
-    "nixpkgs_2": {
+    "hyperx-cloud-3-switchd": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1785832407,
+        "narHash": "sha256-ob3mmOihlFBqSBJUXRhdnK9T8gG3OpQRzvmpVRt5tUI=",
+        "owner": "mny315",
+        "repo": "Hyperx-cloud-3-switchd",
+        "rev": "6488a9628ba7aaeb34d276e58df7029373e8a01e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "mny315",
+        "repo": "Hyperx-cloud-3-switchd",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
       "locked": {
         "lastModified": 1784497964,
         "narHash": "sha256-vlHUuqAcbcH2RKmHbPiuQzbv1pnzzavXnI62RD0bqCU=",
@@ -58,7 +78,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_3": {
+    "nixpkgs_2": {
       "locked": {
         "lastModified": 1783915482,
         "narHash": "sha256-FmieJB8/OUvNxbkboi7+IGfIuSXY3nF/hZQm8kD0r50=",
@@ -77,7 +97,7 @@
     "nixvim": {
       "inputs": {
         "flake-parts": "flake-parts",
-        "nixpkgs": "nixpkgs_3",
+        "nixpkgs": "nixpkgs_2",
         "systems": "systems"
       },
       "locked": {
@@ -102,11 +122,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1785669696,
-        "narHash": "sha256-DdS8EiXCAzybOPSt7rpW7Yil/sNb9lX1knY6bYz03RA=",
+        "lastModified": 1786029032,
+        "narHash": "sha256-Su/PkVKJDNA1mJsv7lg+pDJu55ew3pMA4nW/ZkeUxbg=",
         "owner": "mny315",
         "repo": "Obsidian-bar",
-        "rev": "f8e25b39261d39ef459b5abe8d99a0ff14d6c7a6",
+        "rev": "ed7ef1d04d1c996678cc0a0fbab422450cac5296",
         "type": "github"
       },
       "original": {
@@ -135,7 +155,8 @@
     "root": {
       "inputs": {
         "home-manager": "home-manager",
-        "nixpkgs": "nixpkgs_2",
+        "hyperx-cloud-3-switchd": "hyperx-cloud-3-switchd",
+        "nixpkgs": "nixpkgs",
         "nixvim": "nixvim",
         "obsidian-bar": "obsidian-bar",
         "portprotonqt-src": "portprotonqt-src"

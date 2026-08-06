@@ -35,7 +35,6 @@
     file-roller
     gnome-disk-utility
     hyprlock
-    loupe
     materialgram
     simple-scan
     udiskie
@@ -44,11 +43,9 @@
     xwayland-satellite
 
     # Applications
-    gimp
     libreoffice
 
     # Media and hardware tools
-    cava
     ffmpeg
     lm_sensors
 

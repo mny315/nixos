@@ -3,7 +3,8 @@
 {
   # Thunar
   xfconf.settings.thunar = {
-    "default-view" = "ThunarDetailsView";
+    "default-view" = "ThunarIconView";
+    "last-view" = "ThunarIconView";
 
     "misc-change-window-icon" = false;
     "misc-confirm-close-multiple-tabs" = false;
@@ -40,23 +41,26 @@
 
   # Thunar actions
   xdg.configFile = {
-    "Thunar/uca.xml".text = ''
-      <?xml version="1.0" encoding="UTF-8"?>
-      <actions>
-        <action>
-          <icon>utilities-terminal</icon>
-          <name>Open Terminal Here</name>
-          <submenu></submenu>
-          <unique-id>1770567449221254-1</unique-id>
-          <command>${pkgs.alacritty}/bin/alacritty --working-directory "%f"</command>
-          <description>Open Alacritty in this directory</description>
-          <range></range>
-          <patterns>*</patterns>
-          <startup-notify/>
-          <directories/>
-        </action>
-      </actions>
-    '';
+    "Thunar/uca.xml" = {
+      force = true;
+      text = ''
+        <?xml version="1.0" encoding="UTF-8"?>
+        <actions>
+          <action>
+            <icon>utilities-terminal</icon>
+            <name>Open Terminal Here</name>
+            <submenu></submenu>
+            <unique-id>1770567449221254-1</unique-id>
+            <command>${pkgs.alacritty}/bin/alacritty --working-directory %f</command>
+            <description>Open Alacritty in this directory</description>
+            <range></range>
+            <patterns>*</patterns>
+            <startup-notify/>
+            <directories/>
+          </action>
+        </actions>
+      '';
+    };
 
     "xfce4/helpers.rc".text = ''
       TerminalEmulator=alacritty
