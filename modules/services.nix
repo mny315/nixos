@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 
 {
   # Sound
@@ -21,6 +21,12 @@
   # Network
   networking.networkmanager.enable = true;
 
+  # Mirror
+  nix.settings.substituters = [
+  "https://mirror.yandex.ru/nixos/"
+  "https://cache.nixos.org/"
+   ];
+
   # Services
   services.upower.enable = true;
   services.libinput.enable = true;
@@ -31,21 +37,9 @@
   services.power-profiles-daemon.enable = true;
   services.fstrim.enable = true;
   services.hypridle.enable = true;
+  # This session uses Niri; the module's default PATH also pulls in Hyprland.
+  systemd.user.services.hypridle.path = lib.mkForce [ pkgs.hyprlock pkgs.procps ];
 
-  # Greetd
-services.greetd = {
-  enable = true;
-  settings = {
-    terminal = {
-      vt = 1;
-    };
-
-    default_session = {
-      command = "${pkgs.tuigreet}/bin/tuigreet --time --user-menu --cmd niri-session";
-      user = "greeter";
-    };
-  };
-};
 
   #Steam
 programs.steam = {

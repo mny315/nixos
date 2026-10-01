@@ -28,4 +28,20 @@
       theme = "spinner";
     };
   };
+
+  # Greetd
+services.greetd = {
+  enable = true;
+  settings = {
+    terminal = {
+      vt = 1;
+    };
+
+    default_session = {
+      command = "${pkgs.tuigreet}/bin/tuigreet --time --user-menu --user-menu-min-uid 1000 --user-menu-max-uid 29999 --cmd niri-session";
+      user = "greeter";
+    };
+  };
+};
+
 }

@@ -32,8 +32,9 @@ let
     LOG="$APP_DIR/iopaint-gpu.log"
     WRAPPER_VERSION="9"
     MARKER="$APP_DIR/.wrapper-version"
-    REBUILD_LOCK="$APP_DIR/.rebuild.lock"
-    REBUILD_LOCK_HELD=0
+    # A file lock is released by the kernel after a crash or reboot. Use a new
+    # filename so a stale directory from the old locking scheme cannot block it.
+    REBUILD_LOCK="$APP_DIR/.rebuild.flock"
     IOPAINT_VERSION="''${IOPAINT_VERSION:-1.6.0}"
     TORCH_VERSION="''${TORCH_VERSION:-2.11.0}"
     TORCHVISION_VERSION="''${TORCHVISION_VERSION:-0.26.0}"
@@ -49,12 +50,11 @@ let
       if [ -n "$BROWSER_PROFILE" ]; then
         rm -rf "$BROWSER_PROFILE"
       fi
-      if [ "$REBUILD_LOCK_HELD" = "1" ]; then
-        rmdir "$REBUILD_LOCK" 2>/dev/null || true
-      fi
     }
 
-    trap cleanup EXIT INT TERM
+    trap cleanup EXIT
+    trap 'exit 130' INT
+    trap 'exit 143' TERM
 
     mkdir -p "$APP_DIR"
     exec >>"$LOG" 2>&1
@@ -102,26 +102,6 @@ PY
         return 0
       fi
       return 1
-    }
-
-    acquire_rebuild_lock() {
-      while ! mkdir "$REBUILD_LOCK" 2>/dev/null; do
-        echo "another iopaint-gpu rebuild is already running; waiting"
-        if [ -n "$(${pkgs.findutils}/bin/find "$REBUILD_LOCK" -maxdepth 0 -mmin +120 -print 2>/dev/null || true)" ]; then
-          echo "removing stale rebuild lock"
-          rm -rf "$REBUILD_LOCK"
-          continue
-        fi
-        sleep 5
-      done
-      REBUILD_LOCK_HELD=1
-    }
-
-    release_rebuild_lock() {
-      if [ "$REBUILD_LOCK_HELD" = "1" ]; then
-        rmdir "$REBUILD_LOCK" 2>/dev/null || true
-        REBUILD_LOCK_HELD=0
-      fi
     }
 
     avif_ok() {
@@ -215,27 +195,20 @@ PY
       printf '%s\n' "$MARKER_CONTENT" > "$MARKER"
     }
 
-    ensure_venv() {
+    ensure_venv() (
+      # Keep both the rebuild and AVIF repair under one lock. The subshell
+      # closes the descriptor before starting the server or browser.
+      exec {rebuild_lock_fd}>"$REBUILD_LOCK"
+      ${pkgs.util-linux}/bin/flock --exclusive "$rebuild_lock_fd"
       local reason=""
-      if ! reason="$(need_rebuild_reason)"; then
-        return 0
-      fi
-
-      echo "$reason"
-      acquire_rebuild_lock
-
       if reason="$(need_rebuild_reason)"; then
         echo "$reason"
         rebuild_venv_unlocked
-      else
-        echo "venv was rebuilt by another process"
       fi
-
-      release_rebuild_lock
-    }
+      ensure_avif_support
+    )
 
     ensure_venv
-    ensure_avif_support
 
     "$VENV/bin/iopaint" start \
       --model="$MODEL" \

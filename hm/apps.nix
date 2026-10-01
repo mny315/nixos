@@ -55,7 +55,7 @@
       ram = true;
       vram = true;
 
-      fps_limit = "60,90,240";
+      fps_limit = "60,90,240,300";
       toggle_fps_limit = "Alt_R";
       toggle_hud = "Control_R";
 
@@ -234,6 +234,8 @@
   # Nixvim
   programs.nixvim = {
     enable = true;
+    # Use the same pinned Nixpkgs revision as the host and Home Manager.
+    nixpkgs.source = pkgs.path;
     defaultEditor = true;
     viAlias = true;
     vimAlias = true;

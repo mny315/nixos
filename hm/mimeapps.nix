@@ -14,10 +14,10 @@
       "video/quicktime" = "mpv.desktop";
       "video/x-matroska" = "mpv.desktop";
 
-      # Loupe and imv
-      "image/jpeg" = "org.gnome.Loupe.desktop";
-      "image/png" = "org.gnome.Loupe.desktop";
-      "image/webp" = "org.gnome.Loupe.desktop";
+      #imv
+      "image/jpeg" = "imv.desktop";
+      "image/png" = "imv.desktop";
+      "image/webp" = "imv.desktop";
       "image/gif" = "imv.desktop";
       "image/x-xcursor" = "imv.desktop";
 

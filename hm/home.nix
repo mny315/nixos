@@ -8,6 +8,7 @@
   imports = [
     ./dots.nix
     ./themes.nix
+    ./fastfetch.nix
     ./niri.nix
     ./apps.nix
     ./thunar.nix

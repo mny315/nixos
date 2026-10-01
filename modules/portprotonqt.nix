@@ -65,7 +65,28 @@ let
   # Steam Run
   steamRun = (pkgs.steam.override {
     extraPkgs = _: runtimeDeps;
+    # Desktop launchers and CLI callers may pass files located in host /tmp.
+    privateTmp = false;
   }).run;
+
+  # Enter from a directory visible to bwrap, then restore the caller's working
+  # directory inside the FHS environment. Its host /etc is exposed at /.host-etc.
+  # Keep arguments unchanged, including relative filenames and game options.
+  portprotonFhs = pkgs.writeShellScript "portproton-fhs" ''
+    set -euo pipefail
+    original_dir="$PWD"
+    cd "''${HOME:-/tmp}"
+    export PORTPROTON_NIX_STEAM_RUN=1
+    exec ${steamRun}/bin/steam-run ${pkgs.runtimeShell} -c '
+      set -e
+      case "$1" in
+        /etc|/etc/*) cd -- "/.host-etc''${1#/etc}" ;;
+        *) cd -- "$1" ;;
+      esac
+      shift
+      exec "$@"
+    ' portproton-fhs "$original_dir" "$@"
+  '';
 
   # PortProtonQt
   portprotonqt = pkgs.stdenv.mkDerivation {
@@ -132,20 +153,65 @@ let
         --prefix PYTHONPATH : "$out/${python.sitePackages}" \
         --prefix PATH : "${pythonEnv}/bin"
 
-      # steam-run/bwrap tries to preserve cwd. Paths such as /etc/nixos are not
-      # visible inside its FHS environment, so change to HOME before entering it.
+      # Share the FHS entry helper so every launcher preserves relative paths.
       cat > "$out/bin/portprotonqt" <<EOF
 #!${pkgs.runtimeShell}
-cd "\''${HOME:-/tmp}"
 export APPDIR="$out"
-export PORTPROTON_NIX_STEAM_RUN=1
-exec ${steamRun}/bin/steam-run "$out/libexec/portprotonqt" "\$@"
+exec ${portprotonFhs} "$out/libexec/portprotonqt" "\$@"
 EOF
       chmod +x "$out/bin/portprotonqt"
+
+      # Generic helper: execute an arbitrary command in the exact same Steam
+      # FHS environment used by PortProtonQt itself. This is useful on NixOS
+      # for diagnostics against PortProton-managed Proton/Wine runners.
+      ln -s ${portprotonFhs} "$out/bin/portproton-fhs"
+
+      # Convenience helper for a PortProton Wine runner and prefix:
+      #   portproton-wine GE-PROTON11-1 CLEAR reg query 'HKLM\\...'
+      # It deliberately resolves paths at runtime from the user's XDG config
+      # directory instead of baking one user's home path into the Nix store.
+      cat > "$out/bin/portproton-wine" <<EOF
+#!${pkgs.runtimeShell}
+set -euo pipefail
+
+if [ "\$#" -lt 3 ]; then
+  echo "usage: portproton-wine <runner> <prefix> <wine-command> [args...]" >&2
+  echo "example: portproton-wine GE-PROTON11-1 CLEAR reg query 'HKLM\\Software\\Microsoft\\WindowsRuntime'" >&2
+  exit 2
+fi
+
+runner="\$1"
+prefix="\$2"
+shift 2
+
+data_root="\$HOME/.config/data"
+if [ -n "\''${XDG_CONFIG_HOME:-}" ]; then
+  data_root="\$XDG_CONFIG_HOME/data"
+fi
+
+runner_root="\$data_root/dist/\$runner"
+prefix_root="\$data_root/prefixes/\$prefix"
+wine="\$runner_root/files/bin/wine"
+
+if [ ! -x "\$wine" ]; then
+  echo "portproton-wine: Wine runner not found: \$wine" >&2
+  exit 1
+fi
+
+if [ ! -d "\$prefix_root" ]; then
+  echo "portproton-wine: prefix not found: \$prefix_root" >&2
+  exit 1
+fi
+
+exec ${portprotonFhs} env WINEPREFIX="\$prefix_root" "\$wine" "\$@"
+EOF
+      chmod +x "$out/bin/portproton-wine"
     '';
 
     postFixup = ''
       test -x "$out/bin/portprotonqt"
+      test -x "$out/bin/portproton-fhs"
+      test -x "$out/bin/portproton-wine"
       test -x "$out/libexec/portprotonqt"
       test -f "$out/${python.sitePackages}/portprotonqt/app.py"
       test -f "$out/share/applications/ru.linux_gaming.PortProtonQt.desktop"
@@ -164,7 +230,7 @@ EOF
       # Visible marker so it is trivial to verify that this exact revision was
       # installed instead of an older store path.
       mkdir -p "$out/share/portprotonqt"
-      printf '%s\n' 'nix-wrapper-fix-v6-python-helpers' > "$out/share/portprotonqt/nix-wrapper-revision"
+      printf '%s\n' 'nix-wrapper-fix-v8-preserve-cwd' > "$out/share/portprotonqt/nix-wrapper-revision"
 
       # wrapQtApp moves the real script to .portprotonqt-wrapped. Verify that
       # the runtime entry point really uses the Python environment containing

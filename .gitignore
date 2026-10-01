@@ -1,0 +1,6 @@
+# VPN profiles live outside this repository in ~/.local/share/nixos-secrets/.
+# Also exclude accidental local copies and Nix build output links.
+/.secrets/
+/secrets/
+/result
+/result-*

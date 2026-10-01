@@ -1,6 +1,21 @@
-{ theme, ... }:
+{ pkgs, theme, ... }:
 
 {
+  home.packages = [ pkgs.nerd-fonts.symbols-only ];
+
+  fonts.fontconfig = {
+    enable = true;
+    configFile.nerd-font-fallback = {
+      enable = true;
+      priority = 53;
+      settings.alias = {
+        "@binding" = "strong";
+        family = "IBM Plex Mono";
+        accept.family = "Symbols Nerd Font Mono";
+      };
+    };
+  };
+
   # Alacritty
   programs.alacritty.settings = {
     font = {

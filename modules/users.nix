@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ inputs, pkgs, ... }:
 
 {
   # User
@@ -25,7 +25,8 @@
       tauon
 
       # Utilities
-      fastfetch
+      codex
+      jdk17
     ];
   };
 
@@ -45,13 +46,16 @@
     # Applications
     libreoffice
 
+    # Carlitos
+    inputs.carlitos.packages.${pkgs.stdenv.hostPlatform.system}.default
+
     # Media and hardware tools
     ffmpeg
     lm_sensors
 
     # Archives and filesystems
     _7zz
-    fscrypt-experimental
+    fscrypt
     libarchive
     unrar
     unzip

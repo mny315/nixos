@@ -5,6 +5,11 @@
     # Nixpkgs
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
+    corecycler = {
+      url = "github:Daaboulex/linux-corecycler";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Home Manager
     home-manager = {
       url = "github:nix-community/home-manager/master";
@@ -14,6 +19,7 @@
     # Nixvim
     nixvim = {
       url = "github:nix-community/nixvim/main";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     # Obsidian Bar
@@ -22,10 +28,22 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Carlitos
+    carlitos = {
+      url = "github:mny315/Carlitos";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # HyperX Cloud III S audio switch
     hyperx-cloud-3-switchd = {
       url = "github:mny315/Hyperx-cloud-3-switchd";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # MSI Raider GE77 HX control
+    ge77hx-conf = {
+      url = "github:mny315/GE77HX_conf";
+      flake = false;
     };
 
     # PortProtonQt

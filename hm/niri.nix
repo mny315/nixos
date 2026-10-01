@@ -45,24 +45,11 @@
     }
 
     layout {
-        gaps 3
+        gaps 10
         background-color "transparent"
-        center-focused-column "never"
-        preset-column-widths {
-            proportion 0.33333
-            proportion 0.5
-            proportion 0.66667
-        }
-    }
-
-    overview {
-        workspace-shadow {
-            on
-        }
     }
 
     animations {
-        slowdown 1.0
         window-open {
             duration-ms 400
             curve "ease-out-expo"
@@ -90,12 +77,10 @@
     }
 
     blur {
-        passes 3
         offset 2
-        noise 0.02
         saturation 1.0
     }
-    spawn-sh-at-startup "sleep 0.7; exec obsidian-bar" 
+    spawn-sh-at-startup "sleep 0.7; exec obsidian-bar"
     spawn-at-startup "wl-clip-persist" "--clipboard" "regular" "--ignore-event-on-error"
 
     binds {
@@ -173,7 +158,6 @@
 
         background-effect {
             blur true
-            xray true
         }
 
         popups {
@@ -182,26 +166,30 @@
 
             background-effect {
                 blur true
-                xray false
             }
         }
 
         focus-ring {
-            on
-            active-color "#808080"
+            width 2
+            active-color "#ffffff"
             inactive-color "#666666"
         }
 
         border {
             on
             width 1
-            active-color "#808080"
+            active-color "#ffffff"
             inactive-color "#666666"
         }
     }
 
     layer-rule {
         match namespace="^mpvpaper$"
+        place-within-backdrop true
+    }
+
+    layer-rule {
+        match namespace="^awww-daemon.*$"
         place-within-backdrop true
     }
 
@@ -223,8 +211,21 @@
 
             background-effect {
                 blur true
-                xray false
             }
+        }
+    }
+
+    layer-rule {
+        match namespace="^obsidian-system-monitor(-settings)?$"
+        geometry-corner-radius 18
+
+        shadow {
+            on
+        }
+
+        background-effect {
+            blur true
+            xray false
         }
     }
 
@@ -238,7 +239,7 @@
     }
 
     window-rule {
-        match app-id=r#"^steam_app_(\\d+)$"#
+        match app-id=r#"^steam_app_(\d+)$"#
         opacity 1.0
         open-fullscreen true
         variable-refresh-rate true
@@ -253,7 +254,7 @@
     cursor {
         xcursor-theme "Bibata-Modern-Classic"
         xcursor-size 16
-        hide-after-inactive-ms 9999
+        hide-after-inactive-ms 10000
         hide-when-typing
     }
   '';

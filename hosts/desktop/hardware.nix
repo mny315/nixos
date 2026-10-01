@@ -34,8 +34,9 @@ hardware.bluetooth = {
 #HyperX
 services.hyperx-cloud-3-switchd.enable = true;
 
-#boot.blacklistedKernelModules = [
-#  "btusb"
-#];
+#Bluetooth
+boot.blacklistedKernelModules = [
+  "btusb"
+];
 
 }
