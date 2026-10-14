@@ -69,6 +69,9 @@
             environment.systemPackages = [
               inputs.obsidian-bar.packages.${pkgs.stdenv.hostPlatform.system}.default
             ];
+            services.udev.packages = [
+              inputs.obsidian-bar.packages.${pkgs.stdenv.hostPlatform.system}.default
+            ];
 
             # Niri
             programs.niri = {
